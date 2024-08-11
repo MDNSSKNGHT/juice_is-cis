@@ -15,6 +15,7 @@ CFLAGS := -Wall -O2 -fno-PIC -fno-asynchronous-unwind-tables -fno-common
 INCLUDE_DIRS := . include patch/include linux/include linux/arch/arm64/include linux/tools/arch/arm64/include
 
 INCLUDE_FLAGS := $(foreach dir,$(INCLUDE_DIRS),-I$(KP_DIR)/kernel/$(dir))
+INCLUDE_FLAGS += -Idrivers/fimc-is -Idrivers/pablo/mcd-v9_1_0
 
 objs := juice_is-cis.o
 
