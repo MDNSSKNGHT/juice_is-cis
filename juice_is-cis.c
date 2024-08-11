@@ -4,10 +4,11 @@
 
 #include <compiler.h>
 #include <kpmodule.h>
-#include <linux/printk.h>
 #include <common.h>
 #include <kputils.h>
 #include <linux/string.h>
+
+#include "juice_log.h"
 
 ///< The name of the module, each KPM must has a unique name.
 KPM_NAME("Juice my IS-CIS!");
@@ -32,35 +33,35 @@ KPM_DESCRIPTION("A KPM that juices IS-CIS driver capabilities.");
  * @param reserved 
  * @return int 
  */
-static long kpm_init(const char *args, const char *event, void *__user reserved)
+static long juice_init(const char *args, const char *event, void *__user reserved)
 {
-    pr_info("kpm hello init, event: %s, args: %s\n", event, args);
-    pr_info("kernelpatch version: %x\n", kpver);
+    juice_logi("kpm init, event: %s, args: %s\n", event, args);
+    juice_logi("kernelpatch version: %x\n", kpver);
     return 0;
 }
 
-static long kpm_control0(const char *args, char *__user out_msg, int outlen)
+static long juice_control0(const char *args, char *__user out_msg, int outlen)
 {
-    pr_info("kpm hello control0, args: %s\n", args);
+    juice_logi("kpm control0, args: %s\n", args);
     char echo[64] = "echo: ";
     strncat(echo, args, 48);
     compat_copy_to_user(out_msg, echo, sizeof(echo));
     return 0;
 }
 
-static long kpm_control1(void *a1, void *a2, void *a3)
+static long juice_control1(void *a1, void *a2, void *a3)
 {
-    pr_info("kpm hello control1, a1: %llx, a2: %llx, a3: %llx\n", a1, a2, a3);
+    juice_logi("kpm control1, a1: %llx, a2: %llx, a3: %llx\n", a1, a2, a3);
     return 0;
 }
 
-static long kpm_exit(void *__user reserved)
+static long juice_exit(void *__user reserved)
 {
-    pr_info("kpm hello exit\n");
+    juice_logi("kpm exit\n");
     return 0;
 }
 
-KPM_INIT(kpm_init);
-KPM_CTL0(kpm_control0);
-KPM_CTL1(kpm_control1);
-KPM_EXIT(kpm_exit);
+KPM_INIT(juice_init);
+KPM_CTL0(juice_control0);
+KPM_CTL1(juice_control1);
+KPM_EXIT(juice_exit);
