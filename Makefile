@@ -1,14 +1,16 @@
-ifndef TARGET_COMPILE
-    $(error TARGET_COMPILE not set)
+ifndef ANDROID_NDK_HOME
+    $(error ANDROID_NDK_HOME not set)
 endif
 
 ifndef KP_DIR
-    KP_DIR = ../..
+    KP_DIR = ../KernelPatch
 endif
 
 
-CC = $(TARGET_COMPILE)gcc
-LD = $(TARGET_COMPILE)ld
+CC = $(ANDROID_NDK_HOME)/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang
+LD = $(ANDROID_NDK_HOME)/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld
+
+CFLAGS := -Wall -O2 -fno-PIC -fno-asynchronous-unwind-tables -fno-common
 
 INCLUDE_DIRS := . include patch/include linux/include linux/arch/arm64/include linux/tools/arch/arm64/include
 
@@ -22,7 +24,7 @@ hello.kpm: ${objs}
 	${CC} -r -o $@ $^
 
 %.o: %.c
-	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -Thello.lds -c -O2 -o $@ $<
+	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:
