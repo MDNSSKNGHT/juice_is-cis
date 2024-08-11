@@ -10,7 +10,7 @@
 
 #include "juice_log.h"
 
-///< The name of the module, each KPM must has a unique name.
+///< The name of the module, each KPM must have a unique name.
 KPM_NAME("Juice my IS-CIS!");
 
 ///< The version of the module.
