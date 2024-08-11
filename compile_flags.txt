@@ -4,3 +4,6 @@
 -I../KernelPatch/kernel/linux/include
 -I../KernelPatch/kernel/linux/arch/arm64/include
 -I../KernelPatch/kernel/linux/tools/arch/arm64/include
+
+-Idrivers/fimc-is
+-Idrivers/pablo/mcd-v9_1_0
