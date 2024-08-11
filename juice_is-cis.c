@@ -1,6 +1,5 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
 /* 
- * Copyright (C) 2023 bmax121. All Rights Reserved.
+ * Copyright (C) 2024 mdnssknght. All Rights Reserved.
  */
 
 #include <compiler.h>
@@ -11,36 +10,36 @@
 #include <linux/string.h>
 
 ///< The name of the module, each KPM must has a unique name.
-KPM_NAME("kpm-hello-demo");
+KPM_NAME("Juice my IS-CIS!");
 
 ///< The version of the module.
 KPM_VERSION("1.0.0");
 
 ///< The license type.
-KPM_LICENSE("GPL v2");
+KPM_LICENSE("Not licensed");
 
 ///< The author.
-KPM_AUTHOR("bmax121");
+KPM_AUTHOR("mdnssknght");
 
 ///< The description.
-KPM_DESCRIPTION("KernelPatch Module Example");
+KPM_DESCRIPTION("A KPM that juices IS-CIS driver capabilities.");
 
 /**
- * @brief hello world initialization
+ * @brief KPM initialization
  * @details 
  * 
  * @param args 
  * @param reserved 
  * @return int 
  */
-static long hello_init(const char *args, const char *event, void *__user reserved)
+static long kpm_init(const char *args, const char *event, void *__user reserved)
 {
     pr_info("kpm hello init, event: %s, args: %s\n", event, args);
     pr_info("kernelpatch version: %x\n", kpver);
     return 0;
 }
 
-static long hello_control0(const char *args, char *__user out_msg, int outlen)
+static long kpm_control0(const char *args, char *__user out_msg, int outlen)
 {
     pr_info("kpm hello control0, args: %s\n", args);
     char echo[64] = "echo: ";
@@ -49,19 +48,19 @@ static long hello_control0(const char *args, char *__user out_msg, int outlen)
     return 0;
 }
 
-static long hello_control1(void *a1, void *a2, void *a3)
+static long kpm_control1(void *a1, void *a2, void *a3)
 {
     pr_info("kpm hello control1, a1: %llx, a2: %llx, a3: %llx\n", a1, a2, a3);
     return 0;
 }
 
-static long hello_exit(void *__user reserved)
+static long kpm_exit(void *__user reserved)
 {
     pr_info("kpm hello exit\n");
     return 0;
 }
 
-KPM_INIT(hello_init);
-KPM_CTL0(hello_control0);
-KPM_CTL1(hello_control1);
-KPM_EXIT(hello_exit);
+KPM_INIT(kpm_init);
+KPM_CTL0(kpm_control0);
+KPM_CTL1(kpm_control1);
+KPM_EXIT(kpm_exit);
