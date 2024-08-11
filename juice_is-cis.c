@@ -35,30 +35,30 @@ KPM_DESCRIPTION("A KPM that juices IS-CIS driver capabilities.");
  */
 static long juice_init(const char *args, const char *event, void *__user reserved)
 {
-    juice_logi("kpm init, event: %s, args: %s\n", event, args);
-    juice_logi("kernelpatch version: %x\n", kpver);
-    return 0;
+	juice_logi("kpm init, event: %s, args: %s\n", event, args);
+	juice_logi("kernelpatch version: %x\n", kpver);
+	return 0;
 }
 
 static long juice_control0(const char *args, char *__user out_msg, int outlen)
 {
-    juice_logi("kpm control0, args: %s\n", args);
-    char echo[64] = "echo: ";
-    strncat(echo, args, 48);
-    compat_copy_to_user(out_msg, echo, sizeof(echo));
-    return 0;
+	juice_logi("kpm control0, args: %s\n", args);
+	char echo[64] = "echo: ";
+	strncat(echo, args, 48);
+	compat_copy_to_user(out_msg, echo, sizeof(echo));
+	return 0;
 }
 
 static long juice_control1(void *a1, void *a2, void *a3)
 {
-    juice_logi("kpm control1, a1: %llx, a2: %llx, a3: %llx\n", a1, a2, a3);
-    return 0;
+	juice_logi("kpm control1, a1: %llx, a2: %llx, a3: %llx\n", a1, a2, a3);
+	return 0;
 }
 
 static long juice_exit(void *__user reserved)
 {
-    juice_logi("kpm exit\n");
-    return 0;
+	juice_logi("kpm exit\n");
+	return 0;
 }
 
 KPM_INIT(juice_init);
