@@ -11,6 +11,22 @@
 
 #include "is-metadata-vendor.h"
 
+struct ae_param {
+	union {
+		u32 val;
+		u32 long_val;
+	};
+	u32 short_val;
+	u32 middle_val;
+};
+
+typedef struct {
+	/* Normal parameter */
+	/* Each CB has a specific parameter type.(Ex. SetSize Cb has size info param.) */
+	void *param;
+	unsigned int return_value;
+} cis_setting_info;
+
 typedef struct {
 	unsigned int exposure;
 	unsigned int analog_gain;
@@ -71,6 +87,72 @@ struct wb_gains {
 	u32 r;
 	u32 b;
 	u32 gb;
+};
+
+struct roi_setting_t {
+	bool    update;
+#ifdef SUPPORT_SENSOR_SEAMLESS_3HDR
+	u16     roi_start_x[2];
+	u16     roi_start_y[2];
+	u16     roi_end_x[2];
+	u16     roi_end_y[2];
+#else
+	u16 	roi_start_x;
+	u16 	roi_start_y;
+	u16 	roi_end_x;
+	u16 	roi_end_y;
+#endif
+};
+
+struct sensor_lsi_3hdr_stat_control_mode_change {
+	int r_weight;
+	int b_weight;
+	int g_weight;
+	int low_gate_thr;
+	int high_gate_thr;
+	struct roi_setting_t y_sum_roi;
+};
+
+struct sensor_lsi_3hdr_stat_control_per_frame {
+	int r_weight;
+	int b_weight;
+	int g_weight;
+};
+
+struct sensor_imx_3hdr_stat_control_mode_change {
+		struct roi_setting_t y_sum_roi;
+};
+
+struct sensor_imx_3hdr_stat_control_per_frame {
+	u8 pgain;
+	u8 ngain;
+	u8 fc_correct_intensity;
+	u16 wbd_r_gr;
+};
+
+struct sensor_imx_3hdr_lsc_table_init {
+		u16 ram_table[13*10*2];
+};
+
+struct sensor_imx_3hdr_tone_control {
+	bool gmt_tc2_enable;
+	u8 gmt_tc2_ratio;
+	u8 manual21_frame_p1;
+	u8 manual21_frame_p2;
+	u8 manual12_frame_p1;
+	u8 manual12_frame_p2;
+	u8 manual_tc_ratio;
+	u8 ltc_ratio;
+	u16 hdr_tc_ratio_1;
+	u16 hdr_tc_ratio_2;
+	u16 hdr_tc_ratio_3;
+	u16 hdr_tc_ratio_4;
+	u16 hdr_tc_ratio_5;
+};
+
+struct sensor_imx_3hdr_ev_control {
+	u8 evc_pgain;
+	u8 evc_ngain;
 };
 
 typedef struct {
@@ -204,5 +286,99 @@ typedef struct {
 	u32	crop_x;
 	u32	crop_y;
 } cis_shared_data;
+
+struct v4l2_subdev;
+struct v4l2_rect;
+typedef int (*cis_func_type)(struct v4l2_subdev *subdev, cis_setting_info *info);
+struct is_cis_ops {
+        int (*cis_init)(struct v4l2_subdev *subdev);
+        int (*cis_deinit)(struct v4l2_subdev *subdev);
+        int (*cis_log_status)(struct v4l2_subdev *subdev);
+        int (*cis_group_param_hold)(struct v4l2_subdev *subdev, bool hold);
+        int (*cis_set_global_setting)(struct v4l2_subdev *subdev);
+        int (*cis_mode_change)(struct v4l2_subdev *subdev, u32 mode);
+        int (*cis_set_size)(struct v4l2_subdev *subdev, cis_shared_data *cis_data);
+        int (*cis_stream_on)(struct v4l2_subdev *subdev);
+        int (*cis_stream_off)(struct v4l2_subdev *subdev);
+        int (*cis_adjust_frame_duration)(struct v4l2_subdev *subdev,
+						u32 input_exposure_time,
+						u32 *target_duration);
+	/* Set dynamic frame duration value */
+        int (*cis_set_frame_duration)(struct v4l2_subdev *subdev, u32 frame_duration);
+	/* Set min fps value */
+        int (*cis_set_frame_rate)(struct v4l2_subdev *subdev, u32 min_fps);
+        int (*cis_get_min_exposure_time)(struct v4l2_subdev *subdev, u32 *min_expo);
+        int (*cis_get_max_exposure_time)(struct v4l2_subdev *subdev, u32 *max_expo);
+	cis_func_type cis_adjust_expoure_time; /* TBD */
+        int (*cis_set_exposure_time)(struct v4l2_subdev *subdev, struct ae_param *target_exposure);
+        int (*cis_get_min_analog_gain)(struct v4l2_subdev *subdev, u32 *min_again);
+        int (*cis_get_max_analog_gain)(struct v4l2_subdev *subdev, u32 *max_again);
+        int (*cis_adjust_analog_gain)(struct v4l2_subdev *subdev, u32 input_again, u32 *target_permile);
+        int (*cis_set_analog_gain)(struct v4l2_subdev *subdev, struct ae_param *again);
+        int (*cis_get_analog_gain)(struct v4l2_subdev *subdev, u32 *again);
+        int (*cis_get_min_digital_gain)(struct v4l2_subdev *subdev, u32 *min_dgain);
+        int (*cis_get_max_digital_gain)(struct v4l2_subdev *subdev, u32 *max_dgain);
+	cis_func_type cis_adjust_digital_gain; /* TBD */
+        int (*cis_set_digital_gain)(struct v4l2_subdev *subdev, struct ae_param *dgain);
+        int (*cis_get_digital_gain)(struct v4l2_subdev *subdev, u32 *dgain);
+	int (*cis_compensate_gain_for_extremely_br)(struct v4l2_subdev *subdev, u32 expo, u32 *again, u32 *dgain);
+	cis_func_type cis_get_line_readout_time_ns; /* TBD */
+	cis_func_type cis_read_sysreg; /* TBD */
+	cis_func_type cis_read_userreg; /* TBD */
+	int (*cis_wait_streamoff)(struct v4l2_subdev *subdev);
+	int (*cis_wait_streamon)(struct v4l2_subdev *subdev);
+	void (*cis_data_calculation)(struct v4l2_subdev *subdev, u32 mode);
+	int (*cis_set_long_term_exposure)(struct v4l2_subdev *subdev);
+	int (*cis_set_adjust_sync)(struct v4l2_subdev *subdev, u32 adjust_sync);
+#ifdef USE_CAMERA_SENSOR_RETENTION
+	int (*cis_retention_prepare)(struct v4l2_subdev *subdev);
+	int (*cis_retention_crc_check)(struct v4l2_subdev *subdev);
+#endif
+#ifdef USE_CAMERA_EMBEDDED_HEADER
+	int (*cis_get_frame_id)(struct v4l2_subdev *subdev, u8 *embedded_buf, u16 *frame_id);
+#endif
+	int (*cis_set_frs_control)(struct v4l2_subdev *subdev, u32 command);
+	int (*cis_set_super_slow_motion_roi)(struct v4l2_subdev *subdev, struct v4l2_rect *ssm_roi);
+	int (*cis_set_super_slow_motion_setting)(struct v4l2_subdev *subdev, struct v4l2_rect *setting);
+#ifdef CAMERA_REAR2_SENSOR_SHIFT_CROP
+	int (*cis_update_pdaf_tail_size)(struct v4l2_subdev *subdev, struct is_sensor_cfg *select);
+#endif
+	int (*cis_check_rev_on_init)(struct v4l2_subdev *subdev);
+	int (*cis_set_super_slow_motion_threshold)(struct v4l2_subdev *subdev, u32 threshold);
+	int (*cis_get_super_slow_motion_threshold)(struct v4l2_subdev *subdev, u32 *threshold);
+	int (*cis_set_initial_exposure)(struct v4l2_subdev *subdev);
+	int (*cis_get_super_slow_motion_gmc)(struct v4l2_subdev *subdev, u32 *gmc);
+	int (*cis_get_super_slow_motion_frame_id)(struct v4l2_subdev *subdev, u32 *frameid);
+	int (*cis_set_super_slow_motion_flicker)(struct v4l2_subdev *subdev, u32 flicker);
+	int (*cis_get_super_slow_motion_flicker)(struct v4l2_subdev *subdev, u32 *flicker);
+	int (*cis_get_super_slow_motion_md_threshold)(struct v4l2_subdev *subdev, u32 *threshold);
+	int (*cis_set_super_slow_motion_gmc_table_idx)(struct v4l2_subdev *subdev, u32 idx);
+	int (*cis_set_super_slow_motion_gmc_block_with_md_low)(struct v4l2_subdev *subdev, u32 idx);
+	int (*cis_recover_stream_on)(struct v4l2_subdev *subdev);
+	int (*cis_recover_stream_off)(struct v4l2_subdev *subdev);
+	int (*cis_set_laser_control)(struct v4l2_subdev *subdev, u32 onoff);
+	int (*cis_set_laser_mode)(struct v4l2_subdev *subdev, u32 mode);
+	int (*cis_set_factory_control)(struct v4l2_subdev *subdev, u32 command);
+	int (*cis_set_laser_current)(struct v4l2_subdev *subdev, u32 value);
+	int (*cis_get_laser_photo_diode)(struct v4l2_subdev *subdev, u16 *value);
+	int (*cis_get_tof_tx_freq)(struct v4l2_subdev *subdev, u32 *value);
+	int (*cis_get_tof_laser_error_flag)(struct v4l2_subdev *subdev, u32 mode, int *value);
+	int (*cis_set_tof_tx_freq)(struct v4l2_subdev *subdev, u32 value);
+	int (*cis_set_wb_gains)(struct v4l2_subdev *subdev, struct wb_gains wb_gains);
+	int (*cis_set_roi_stat)(struct v4l2_subdev *subdev, struct roi_setting_t roi_control);
+	int (*cis_set_3hdr_stat)(struct v4l2_subdev *subdev, bool streaming, void *data);
+	void (*cis_check_wdr_mode)(struct v4l2_subdev *subdev, u32 mode_idx);
+	int (*cis_check_model_id)(struct v4l2_subdev *subdev);
+	int (*cis_active_test)(struct v4l2_subdev *subdev);
+	int (*cis_set_dual_setting)(struct v4l2_subdev *subdev, u32 mode);
+	int (*cis_get_binning_ratio)(struct v4l2_subdev *subdev, u32 mode, int *binning_ratio);
+	int (*cis_init_3hdr_lsc_table)(struct v4l2_subdev *subdev, void *data);
+	int (*cis_set_tone_stat)(struct v4l2_subdev *subdev, struct sensor_imx_3hdr_tone_control tone_control);
+	int (*cis_set_ev_stat)(struct v4l2_subdev *subdev, struct sensor_imx_3hdr_ev_control ev_control);
+	int (*cis_set_totalgain)(struct v4l2_subdev *subdev, struct ae_param *target_exposure, struct ae_param *again, struct ae_param *dgain);
+	int (*cis_set_fake_retention)(struct v4l2_subdev *subdev, bool enable);
+	int (*cis_wait_ln_mode_delay)(struct v4l2_subdev *subdev);
+	int (*cis_set_test_pattern)(struct v4l2_subdev *subdev, camera2_sensor_ctl_t *sensor_ctl);
+};
 
 #endif /* IS_SENSOR_INTERFACE_H */
